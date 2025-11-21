@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { PaymentMobileClientData, PaymentMobileAuthRequest, PaymentMobileAuthResponse, PaymentMobilePaymentRequest, PaymentMobilePaymentResponse } from '@/lib/types/payment-mobile';
-import { PaymentMobileApi } from '@/lib/api/payment-mobile-api';
+import { PaymentMobileClientData, PaymentMobileAuthRequest, PaymentMobileAuthResponse, PaymentMobilePaymentRequest, PaymentMobilePaymentResponse } from '../../lib/types/payment-mobile';
+import { PaymentMobileApi } from '../../lib/api/payment-mobile-api';
 
 interface PaymentMobilePaymentProps {
   PaymentMobileClientData: PaymentMobileClientData;

@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
-import MobilePaymentSearchComponent from '@/components/search/MobilePaymentSearchComponent';
+import MobilePaymentSearchComponent from '../../../../components/search/MobilePaymentSearchComponent';
 
-import { MobilePaymentSearchRequest } from '@/lib/types/search-types';
+import { MobilePaymentSearchRequest } from '../../../../lib/types/search-types';
 
 // Interfaz para los parámetros de URL
 interface UrlParams {

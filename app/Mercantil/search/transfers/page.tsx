@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import TransferSearchComponent from '@/components/search/TransferSearchComponent';
-import { TransferSearchRequest } from '@/lib/types/search-types';
+import TransferSearchComponent from '../../../../components/search/TransferSearchComponent';
+import { TransferSearchRequest } from '../../../../lib/types/search-types';
 
 // Interfaz para los parámetros de URL
 interface UrlParams {

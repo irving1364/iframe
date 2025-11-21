@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import QrGenerator from '@/components/shared/QrGenerator';
+import QrGenerator from '../../components/shared/QrGenerator';
 
 type ServiceType = 'tdc' | 'tdd' | 'payment-mobile' | 'search-transfers' | 'search-mobile-payments';
 
