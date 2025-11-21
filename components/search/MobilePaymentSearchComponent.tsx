@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { MobilePaymentSearchRequest, MobilePaymentSearchResponse } from '@/lib/types/search-types';
-import { SearchApi } from '@/lib/api/search-api';
+import { MobilePaymentSearchRequest, MobilePaymentSearchResponse } from '../../lib/types/search-types';
+import { SearchApi } from '../../lib/api/search-api';
 
 interface MobilePaymentSearchProps {
   searchData: MobilePaymentSearchRequest;

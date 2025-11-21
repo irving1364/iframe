@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
-import { TransferSearchRequest, TransferSearchResponse } from '@/lib/types/search-types';
-import { SearchApi } from '@/lib/api/search-api';
-import { venezuelanBanks } from '@/lib/data/banks-data';
+import { TransferSearchRequest, TransferSearchResponse } from '../../lib/types/search-types';
+import { SearchApi } from '../../lib/api/search-api';
+import { venezuelanBanks } from '../../lib/data/banks-data';
 
 interface TransferSearchProps {
   searchData: TransferSearchRequest;

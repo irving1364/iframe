@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { ClientData, PaymentRequest, PaymentResponse } from '@/lib/types';
-import { PaymentApi } from '@/lib/api/api';
-import CustomCreditCard from '@/components/ui/CustomCreditCard';
-import ZinliCard from '@/components/ui/ZinliCard';
+import { ClientData, PaymentRequest, PaymentResponse } from '../../lib/types';
+import { PaymentApi } from '../../lib/api/api';
+import CustomCreditCard from '../../components/ui/CustomCreditCard';
+import ZinliCard from '../../components/ui/ZinliCard';
 
 interface TdcPaymentProps {
   clientData: ClientData;

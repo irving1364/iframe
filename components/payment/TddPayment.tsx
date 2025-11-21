@@ -1,7 +1,7 @@
     'use client';
     import { useEffect, useState } from 'react';
-    import { TddClientData, TddAuthRequest, TddAuthResponse, TddPaymentRequest } from '@/lib/types/tdd-types';
-    import { TddPaymentApi } from '@/lib/api/tdd-api';
+    import { TddClientData, TddAuthRequest, TddAuthResponse, TddPaymentRequest } from '../../lib/types/tdd-types';
+    import { TddPaymentApi } from '../../lib/api/tdd-api';
 
     interface TddPaymentProps {
     clientData: TddClientData;
