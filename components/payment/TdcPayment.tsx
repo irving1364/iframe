@@ -36,6 +36,18 @@ const containerVariants = {
   }
 };
 
+const successVariants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.6,
+      ease: [0.16, 1, 0.3, 1] as const // ← añade 'as const'
+    }
+  }
+};
+
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
@@ -43,7 +55,7 @@ const itemVariants = {
     y: 0,
     transition: {
       duration: 0.5,
-      ease: "easeOut"
+      ease: [0.16, 1, 0.3, 1] as const // ← aquí también
     }
   }
 };
@@ -55,19 +67,7 @@ const cardVariants = {
     scale: 1,
     transition: {
       duration: 0.5,
-      ease: "easeOut"
-    }
-  }
-};
-
-const successVariants = {
-  hidden: { opacity: 0, scale: 0.8 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      duration: 0.6,
-      ease: "easeOut"
+      ease: [0.16, 1, 0.3, 1] as const // ← y aquí
     }
   }
 };
