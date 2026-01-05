@@ -1,9 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ClientData, PaymentRequest, PaymentResponse } from '../../lib/types';
 import { PaymentApi } from '../../lib/api/api';
 import CustomCreditCard from '../../components/ui/CustomCreditCard';
 import ZinliCard from '../../components/ui/ZinliCard';
+import GradientLogoSpinner from '../../components/ui/GradientLogoSpinner';
 
 interface TdcPaymentProps {
   clientData: ClientData;
@@ -16,12 +18,71 @@ interface TdcPaymentProps {
 type PaymentStatus = 'idle' | 'loading' | 'success' | 'error';
 type IdType = 'V' | 'E' | 'J';
 
-// Configuración de tipos de tarjeta
 interface CardTypeConfig {
   name: string;
   pattern: RegExp;
   issuer: string;
 }
+
+// Animaciones con Framer Motion
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 0.6,
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut"
+    }
+  }
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut"
+    }
+  }
+};
+
+const successVariants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut"
+    }
+  }
+};
+
+const shakeVariants = {
+  shake: {
+    x: [0, -10, 10, -10, 10, 0],
+    transition: {
+      duration: 0.5
+    }
+  },
+  idle: {
+    x: 0
+  }
+};
 
 export default function TdcPayment({ clientData, onSuccess, onError, embedded = false, mode = 'standalone' }: TdcPaymentProps) {
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle');
@@ -35,25 +96,17 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
   const [showDevPanel, setShowDevPanel] = useState(false);
   const [rawRequestData, setRawRequestData] = useState<any>(null);
   const [rawResponseData, setRawResponseData] = useState<any>(null);
-  
-  // Estados para react-credit-cards-2
   const [cardFocus, setCardFocus] = useState<'number' | 'name' | 'expiry' | 'cvc'>('number');
   const [cardName, setCardName] = useState('');
   const [detectedCardType, setDetectedCardType] = useState<string>('unknown');
+  const [shake, setShake] = useState(false);
 
-  console.log('🔍 [RENDER] detectedCardType:', detectedCardType);
-  console.log('🔍 [RENDER] cardNumber:', cardNumber);
-  console.log('🔍 [RENDER] cardName:', cardName);
-
-  // Configuración de tipos de tarjeta (incluyendo Zinli) - ORDEN CORREGIDO
   const cardTypes: Record<string, CardTypeConfig> = {
-    // ZINLI PRIMERO - porque algunos BINs de Zinli empiezan con 4 y coincidirían con Visa
     zinli: {
       name: 'Zinli',
       pattern: /^(402251|402276|404599|405632|406136|408137)/,
       issuer: 'zinli'
     },
-    // LUEGO LOS DEMÁS
     visa: {
       name: 'Visa',
       pattern: /^4/,
@@ -66,70 +119,33 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
     }
   };
 
-  console.log('🔍 [CONFIG] cardTypes config loaded:', Object.keys(cardTypes));
-
-  // Detectar tipo de tarjeta
   useEffect(() => {
-    console.log('🔍 [USE_EFFECT] cardNumber changed:', cardNumber);
     const detected = detectCardType(cardNumber);
-    console.log('🔍 [USE_EFFECT] detected card type:', detected);
     setDetectedCardType(detected);
   }, [cardNumber]);
 
   const detectCardType = (number: string): string => {
-    console.log('🔍 [DETECT_CARD_TYPE] input number:', number);
     const cleanNumber = number.replace(/\s/g, '');
-    console.log('🔍 [DETECT_CARD_TYPE] cleaned number:', cleanNumber);
-    
-    if (!cleanNumber) {
-      console.log('🔍 [DETECT_CARD_TYPE] empty number, returning unknown');
-      return 'unknown';
-    }
+    if (!cleanNumber) return 'unknown';
 
-    // Para debugging: mostrar qué BIN estamos probando
-    const firstSix = cleanNumber.substring(0, 6);
-    console.log('🔍 [DETECT_CARD_TYPE] first 6 digits:', firstSix);
-
-    // Probar Zinli primero (más específico)
-    console.log('🔍 [DETECT_CARD_TYPE] testing ZINLI first');
     const zinliMatch = cardTypes.zinli.pattern.test(cleanNumber);
-    console.log('🔍 [DETECT_CARD_TYPE] ZINLI match result:', zinliMatch);
-    
-    if (zinliMatch) {
-      console.log('🔍 [DETECT_CARD_TYPE] ZINLI MATCH FOUND!');
-      return 'zinli';
-    }
+    if (zinliMatch) return 'zinli';
 
-    // Luego probar los demás
     for (const [type, config] of Object.entries(cardTypes)) {
-      if (type === 'zinli') continue; // Ya probamos Zinli
-      
-      console.log('🔍 [DETECT_CARD_TYPE] testing type:', type, 'pattern:', config.pattern);
-      const isMatch = config.pattern.test(cleanNumber);
-      console.log('🔍 [DETECT_CARD_TYPE]', type, 'match result:', isMatch);
-      
-      if (isMatch) {
-        console.log('🔍 [DETECT_CARD_TYPE] MATCH FOUND:', type);
-        return type;
-      }
+      if (type === 'zinli') continue;
+      if (config.pattern.test(cleanNumber)) return type;
     }
     
-    console.log('🔍 [DETECT_CARD_TYPE] no match found, returning unknown');
     return 'unknown';
   };
 
   const getIssuer = (): string => {
-    const issuer = detectedCardType === 'unknown' ? '' : cardTypes[detectedCardType]?.issuer || '';
-    console.log('🔍 [GET_ISSUER] detectedCardType:', detectedCardType, 'issuer:', issuer);
-    return issuer;
+    return detectedCardType === 'unknown' ? '' : cardTypes[detectedCardType]?.issuer || '';
   };
 
-  // Extraer customerId existente si viene del clientData
   useEffect(() => {
-    console.log('🔍 [USE_EFFECT] clientData.customerId:', clientData.customerId);
     if (clientData.customerId && typeof clientData.customerId === 'string') {
       const match = clientData.customerId.match(/^([VEJ])(\d+)$/);
-      console.log('🔍 [USE_EFFECT] customerId match:', match);
       if (match) {
         setIdType(match[1] as IdType);
         setIdNumber(match[2]);
@@ -137,19 +153,13 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
         const numbersOnly = clientData.customerId.replace(/[^0-9]/g, '');
         setIdNumber(numbersOnly);
       }
-    } else {
-      setIdType('V');
-      setIdNumber('');
     }
   }, [clientData.customerId]);
 
-  // Funciones de formateo
   const formatCardNumber = (value: string) => {
     const cleaned = value.replace(/\D/g, '').slice(0, 16);
     const groups = cleaned.match(/.{1,4}/g);
-    const result = groups ? groups.join(' ') : cleaned;
-    console.log('🔍 [FORMAT_CARD_NUMBER] input:', value, 'output:', result);
-    return result;
+    return groups ? groups.join(' ') : cleaned;
   };
 
   const formatExpirationDate = (value: string) => {
@@ -158,7 +168,6 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
     if (cleaned.length > 4) {
       result = cleaned.slice(0, 4) + '/' + cleaned.slice(4, 6);
     }
-    console.log('🔍 [FORMAT_EXPIRATION_DATE] input:', value, 'output:', result);
     return result;
   };
 
@@ -168,7 +177,6 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
     if (cleaned.length >= 4) {
       result = cleaned.slice(0, 4) + '/' + cleaned.slice(4, 6);
     }
-    console.log('🔍 [FORMAT_DISPLAY_EXPIRY] input:', value, 'output:', result);
     return result;
   };
 
@@ -178,38 +186,39 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
     if (cleaned.length === 6) {
       result = cleaned.slice(0, 4) + '/' + cleaned.slice(4);
     }
-    console.log('🔍 [CONVERT_TO_API_DATE] input:', displayDate, 'output:', result);
     return result;
   };
 
   const buildCustomerId = (type: IdType, number: string): string => {
-    const result = `${type}${number}`;
-    console.log('🔍 [BUILD_CUSTOMER_ID] type:', type, 'number:', number, 'result:', result);
-    return result;
+    return `${type}${number}`;
+  };
+
+  const triggerErrorAnimation = () => {
+    setShake(true);
+    setTimeout(() => setShake(false), 500);
   };
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('🔍 [HANDLE_PAYMENT] starting payment process');
     setPaymentStatus('loading');
     setResponseMessage('');
     setRawResponseData(null);
 
     try {
       if (!cardNumber || !cvv || !expirationDate || !idNumber || !invoiceNumber || !cardName) {
-        console.log('🔍 [HANDLE_PAYMENT] validation failed - missing fields');
+        triggerErrorAnimation();
         throw new Error('Por favor complete todos los campos');
       }
 
       if (idNumber.length < 6 || idNumber.length > 10) {
-        console.log('🔍 [HANDLE_PAYMENT] validation failed - invalid id length');
+        triggerErrorAnimation();
         throw new Error('La cédula debe tener entre 6 y 10 dígitos');
       }
 
       const apiExpirationDate = convertToApiDateFormat(expirationDate);
       
       if (!/^\d{4}\/\d{2}$/.test(apiExpirationDate)) {
-        console.log('🔍 [HANDLE_PAYMENT] validation failed - invalid date format');
+        triggerErrorAnimation();
         throw new Error('Formato de fecha incorrecto. Use AAAA/MM (ej: 2027/10)');
       }
 
@@ -228,14 +237,8 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
         paymentMethod: 'tdc'
       };
 
-      console.log('🔍 [HANDLE_PAYMENT] payment data prepared:', {
-        ...paymentData,
-        cardNumber: `${paymentData.cardNumber.substring(0, 6)}...${paymentData.cardNumber.substring(12)}`
-      });
-
       setRawRequestData(paymentData);
       const response: PaymentResponse = await PaymentApi.processPayment(paymentData);
-      console.log('🔍 [HANDLE_PAYMENT] API response:', response);
       setRawResponseData(response);
       setPaymentStatus('success');
       setResponseMessage(response.message);
@@ -245,33 +248,19 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
       }, 2000);
       
     } catch (error) {
-      console.error('🔍 [HANDLE_PAYMENT] error:', error);
       setPaymentStatus('error');
       setRawResponseData(error instanceof Error ? { error: error.message } : error);
       
       let errorMessage = 'Error procesando el pago';
-      
       if (error instanceof Error) {
         errorMessage = error.message;
-        
-        if (error.message.includes('complete todos los campos')) {
-          errorMessage = 'Por favor complete todos los campos requeridos';
-        } else if (error.message.includes('Formato de fecha incorrecto')) {
-          errorMessage = 'Formato de fecha incorrecto. Use AAAA/MM (ej: 2027/10)';
-        } else if (error.message.includes('cédula debe tener')) {
-          errorMessage = error.message;
-        } else if (error.message.includes('Número de factura no disponible')) {
-          errorMessage = 'Número de factura no disponible';
-        }
       }
       
       setResponseMessage(errorMessage);
-      console.error('❌ Error técnico completo:', error);
     }
   };
 
   const resetForm = () => {
-    console.log('🔍 [RESET_FORM] resetting form');
     setPaymentStatus('idle');
     setResponseMessage('');
     setCardNumber('');
@@ -287,7 +276,6 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
   };
 
   const fillWithData = (testData: any) => {
-    console.log('🔍 [FILL_WITH_DATA] filling with test data:', testData);
     setCardNumber(testData.cardNumber || '');
     setCvv(testData.cvv || '');
     setExpirationDate(testData.expirationDate?.replace(/\D/g, '') || '');
@@ -307,103 +295,182 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
     setInvoiceNumber(testData.invoiceNumber || clientData.invoiceNumber || clientData.orderId || '');
   };
 
-  // Estado de éxito
   if (paymentStatus === 'success') {
     return (
-      <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-            </svg>
+      <AnimatePresence>
+        <motion.div
+          variants={successVariants}
+          initial="hidden"
+          animate="visible"
+          className="max-w-md mx-auto p-8 bg-white rounded-2xl shadow-lg border border-gray-100"
+        >
+          <div className="text-center">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ 
+                type: "spring",
+                stiffness: 200,
+                damping: 15
+              }}
+              className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6"
+            >
+              <motion.svg
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="w-10 h-10 text-green-600"
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              </motion.svg>
+            </motion.div>
+            
+            <motion.h3
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-2xl font-bold text-green-600 mb-3"
+            >
+              ¡Pago Exitoso!
+            </motion.h3>
+            
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-gray-600 mb-6"
+            >
+              {responseMessage}
+            </motion.p>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="bg-green-50 p-5 rounded-xl mb-6 border border-green-200"
+            >
+              <div className="space-y-2 text-left">
+                <p className="text-sm text-green-800 flex justify-between">
+                  <span className="font-semibold">Referencia:</span>
+                  <span>{invoiceNumber}</span>
+                </p>
+                <p className="text-sm text-green-800 flex justify-between">
+                  <span className="font-semibold">Cédula:</span>
+                  <span>{buildCustomerId(idType, idNumber)}</span>
+                </p>
+                <p className="text-sm text-green-800 flex justify-between">
+                  <span className="font-semibold">Monto:</span>
+                  <span className="font-bold">${clientData.amount.toFixed(2)}</span>
+                </p>
+              </div>
+            </motion.div>
+            
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={resetForm}
+              className="px-8 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold shadow-lg"
+            >
+              Realizar otro pago
+            </motion.button>
           </div>
-          <h3 className="text-xl font-bold text-green-600 mb-2">¡Pago Exitoso!</h3>
-          <p className="text-gray-600 mb-4">{responseMessage}</p>
-          <div className="bg-green-50 p-4 rounded-lg mb-4">
-            <p className="text-sm text-green-800">
-              Referencia: {invoiceNumber}
-            </p>
-            <p className="text-sm text-green-800">
-              Cédula: {buildCustomerId(idType, idNumber)}
-            </p>
-            <p className="text-sm text-green-800">
-              Monto: ${clientData.amount.toFixed(2)}
-            </p>
-          </div>
-          <button
-            onClick={resetForm}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Realizar otro pago
-          </button>
-        </div>
-
-        {/* Panel de desarrollador en estado de éxito */}
-        {showDevPanel && (
-          <div className="mt-6 p-4 bg-gray-100 rounded-lg">
-            <h4 className="font-bold mb-2">📊 Respuesta del API:</h4>
-            <pre className="text-xs bg-black text-green-400 p-3 rounded overflow-auto max-h-40">
-              {JSON.stringify(rawResponseData, null, 2)}
-            </pre>
-          </div>
-        )}
-      </div>
+        </motion.div>
+      </AnimatePresence>
     );
   }
 
-  console.log('🔍 [RENDER] Rendering main component, detectedCardType:', detectedCardType);
-  console.log('🔍 [RENDER] Using ZinliCard?', detectedCardType === 'zinli');
-
   return (
-    <div className={`mx-auto bg-white rounded-lg shadow-lg ${
-      embedded ? 'w-full max-w-full p-3' : 'max-w-4xl p-6' }`}>
-         
-      {/* Header condicional para modo Odoo */}
-     
-      <h2 className={`font-bold mb-4 text-black text-center ${
-        mode === 'odoo' ? 'text-lg' : 'text-xl' }`}>
-        Pago con Tarjeta de Crédito
-      </h2>
-      
-      {/* Botón para mostrar/ocultar panel de desarrollador */}
-      <div className="mb-4 flex justify-between items-center">
-        <button
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className={`mx-auto bg-white rounded-2xl shadow-lg border border-gray-200 ${
+        embedded ? 'w-full max-w-full p-4' : 'max-w-4xl p-8'
+      }`}
+    >
+      {/* Header */}
+      <motion.div variants={itemVariants} className="text-center mb-8">
+        <div className="flex items-center justify-center mb-4">
+          <motion.div
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            className="w-12 h-12 mr-3 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl flex items-center justify-center shadow-lg"
+          >
+            <svg viewBox="0 0 281.75 281.72" className="w-6 h-6 text-white">
+              <path fill="currentColor" d="M9.25,9.28c0,93.75.51.48.51,94.23H131L9.76,224.72V291H76.05L197.26,169.8V291H291V9.76H103.51" transform="translate(-9.25 -9.28)"/>
+            </svg>
+          </motion.div>
+          <h2 className={`font-bold text-gray-800 ${mode === 'odoo' ? 'text-xl' : 'text-2xl'}`}>
+            Pago con Tarjeta de Crédito
+          </h2>
+        </div>
+        <p className="text-gray-600 text-lg">Complete los datos de su tarjeta para procesar el pago</p>
+      </motion.div>
+
+      {/* Botón panel dev */}
+      <motion.div variants={itemVariants} className="mb-6 flex justify-end">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           type="button"
           onClick={() => setShowDevPanel(!showDevPanel)}
-          className="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-black"
+          className="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl text-gray-700 border border-gray-300 transition-colors"
         >
-          {showDevPanel ? '👨‍💻 Ocultar Dev' : '👨‍💻 Mostrar Dev'}
-        </button>
-      </div>
+          {showDevPanel ? '👨‍💻 Ocultar Panel Dev' : '👨‍💻 Mostrar Panel Dev'}
+        </motion.button>
+      </motion.div>
 
-      {/* Layout responsive */}
-      <div className="space-y-6">
+      <motion.div variants={containerVariants} className="space-y-8">
+        {/* Información de la transacción */}
         
-        {/* Información de la transacción - Siempre arriba */}
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-blue-800"> N° de Factura:</span>
-            <span className="text-lg font-bold text-black">
-              {invoiceNumber}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-blue-800">Monto a pagar:</span>
-            <span className="text-lg font-bold text-black">
-              ${clientData.amount.toFixed(2)}
-            </span>
-          </div>
-        </div>
+        <motion.div
+            variants={itemVariants}
+            className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl"
+          >
+            <div className="flex justify-between items-center gap-4">
+              <div className="flex items-center gap-3">
+                {/* Icono de factura */}
+                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-xs text-purple-600 font-medium">N° DE FACTURA</p>
+                  <p className="text-sm font-bold text-gray-900">{invoiceNumber}</p>
+                </div>
+              </div>
+              
+              <div className="h-8 w-px bg-purple-200"></div>
+              
+              <div className="flex items-center gap-3">
+                {/* Icono de monto */}
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-xs text-blue-600 font-medium">MONTO A PAGAR</p>
+                  <p className="text-sm font-bold text-gray-900">${clientData.amount.toFixed(2)}</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
 
-        {/* Contenido principal en columnas responsive */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Columna 1: Tarjeta visual */}
-          <div className="space-y-4">
-            {/* Vista de la tarjeta */}
+          <motion.div variants={cardVariants} className="space-y-6">
             <div className="flex justify-center">
-              <div className="w-full max-w-[300px] relative">
+              <motion.div
+                animate={{
+                  scale: detectedCardType !== 'unknown' ? [1, 1.02, 1] : 1
+                }}
+                transition={{ duration: 0.3 }}
+                className="w-full max-w-[340px] relative"
+              >
                 {detectedCardType === 'zinli' ? (
                   <ZinliCard
                     number={cardNumber}
@@ -422,45 +489,66 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
                     issuer={getIssuer()}
                   />
                 )}
-              </div>
+              </motion.div>
             </div>
 
-            {/* Indicador del tipo de tarjeta detectado */}
-            {detectedCardType !== 'unknown' && (
-              <div className="text-center">
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                  detectedCardType === 'zinli' ? 'bg-purple-100 text-purple-800' :
-                  detectedCardType === 'visa' ? 'bg-blue-100 text-blue-800' :
-                  detectedCardType === 'mastercard' ? 'bg-red-100 text-red-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {cardTypes[detectedCardType]?.name || 'Tarjeta'} detectada
-                </span>
-              </div>
-            )}
-          </div>
+            {/* Indicador de tarjeta */}
+            <AnimatePresence>
+              {detectedCardType !== 'unknown' && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="text-center"
+                >
+                  <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${
+                    detectedCardType === 'zinli' ? 'bg-purple-100 text-purple-800' :
+                    detectedCardType === 'visa' ? 'bg-blue-100 text-blue-800' :
+                    detectedCardType === 'mastercard' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                      className={`w-2 h-2 rounded-full mr-2 ${
+                        detectedCardType === 'zinli' ? 'bg-purple-500' :
+                        detectedCardType === 'visa' ? 'bg-blue-500' :
+                        detectedCardType === 'mastercard' ? 'bg-red-500' :
+                        'bg-gray-500'
+                      }`}
+                    />
+                    {cardTypes[detectedCardType]?.name || 'Tarjeta'} detectada
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Información de seguridad */}
+          
+          
+          </motion.div>
 
           {/* Columna 2: Formulario */}
-          <div className="space-y-4">
-            {/* Panel de desarrollador */}
-            {showDevPanel && (
-              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h4 className="font-bold text-yellow-800 mb-2 text-sm">🧪 Panel de Desarrollo - DEBUG</h4>
-                
-                <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded">
-                  <h5 className="font-bold text-red-800 text-xs">🔍 DEBUG INFO:</h5>
-                  <div className="text-xs space-y-1 text-gray-900">
-                    <div>detectedCardType: <strong>{detectedCardType}</strong></div>
-                    <div>cardNumber: {cardNumber || '---'}</div>
-                    <div>Using Component: <strong>{detectedCardType === 'zinli' ? 'ZinliCard' : 'CustomCreditCard'}</strong></div>
-                  </div>
-                </div>
-
-                {/* Datos de prueba rápidos */}
-                <div className="mb-3">
-                  <label className="block text-sm font-medium text-yellow-700 mb-1">Datos de prueba:</label>
-                  <div className="flex flex-wrap gap-2">
-                    <button
+          <motion.div variants={containerVariants} className="space-y-6">
+            <AnimatePresence>
+              {showDevPanel && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="p-4 bg-yellow-50 border border-yellow-200 rounded-2xl overflow-hidden"
+                >
+                  <h4 className="font-bold text-yellow-800 mb-3 text-sm flex items-center">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                    </svg>
+                    Panel de Desarrollo
+                  </h4>
+                  
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       type="button"
                       onClick={() => fillWithData({
                         cardNumber: '4110960300817842',
@@ -471,11 +559,13 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
                         idNumber: '8019884',
                         invoiceNumber: 'VISA-' + Date.now().toString().slice(-6)
                       })}
-                      className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
+                      className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg transition-colors"
                     >
-                      Visa Test
-                    </button>
-                    <button
+                      💳 Visa Test
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       type="button"
                       onClick={() => fillWithData({
                         cardNumber: '4022760000000001',
@@ -486,218 +576,178 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
                         idNumber: '12345678',
                         invoiceNumber: 'ZINLI-' + Date.now().toString().slice(-6)
                       })}
-                      className="text-xs bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded"
+                      className="text-xs bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded-lg transition-colors"
                     >
-                      Zinli Test
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => fillWithData({
-                        cardNumber: '5112345678901234',
-                        cvv: '456',
-                        expirationDate: '202512',
-                        cardName: 'TITULAR MASTERCARD',
-                        idType: 'V',
-                        idNumber: '87654321',
-                        invoiceNumber: 'MC-' + Date.now().toString().slice(-6)
-                      })}
-                      className="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
-                    >
-                      Mastercard Test
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => fillWithData({
-                        cardNumber: '',
-                        cvv: '',
-                        expirationDate: '',
-                        cardName: '',
-                        idType: 'V',
-                        idNumber: '',
-                        invoiceNumber: clientData.invoiceNumber || clientData.orderId || ''
-                      })}
-                      className="text-xs bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded"
-                    >
-                      Limpiar
-                    </button>
+                      💜 Zinli Test
+                    </motion.button>
                   </div>
-                </div>
-
-                {/* Datos actuales del formulario */}
-                <div className="mb-2">
-                  <label className="block text-sm font-medium text-yellow-700 mb-1">Datos actuales:</label>
-                  <div className="text-xs space-y-1 text-gray-900">
-                    <div>Factura: {invoiceNumber || '---'}</div>
-                    <div>Tarjeta: {cardNumber || '---'}</div>
-                    <div>CVV: {cvv || '---'} | Expira: {expirationDate || '---'}</div>
-                    <div>Nombre: {cardName || '---'}</div>
-                    <div>Cédula: {idType}-{idNumber || '---'}</div>
-                    <div>Customer ID (API): {buildCustomerId(idType, idNumber) || '---'}</div>
-                    <div>Tipo detectado: {cardTypes[detectedCardType]?.name || '---'}</div>
-                    <div>Issuer: {getIssuer() || '---'}</div>
-                  </div>
-                </div>
-
-                {/* Request/Response anteriores */}
-                {rawRequestData && (
-                  <div className="mt-2">
-                    <details>
-                      <summary className="cursor-pointer text-sm font-medium text-yellow-700">
-                        Último Request ↆ
-                      </summary>
-                      <pre className="text-xs bg-black text-green-400 p-2 rounded mt-1 overflow-auto max-h-32">
-                        {JSON.stringify(rawRequestData, null, 2)}
-                      </pre>
-                    </details>
-                  </div>
-                )}
-              </div>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Mensaje de error */}
-            {paymentStatus === 'error' && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  <span className="text-red-800 font-medium">Error en el pago</span>
-                </div>
-                <p className="text-red-600 text-sm mt-1">{responseMessage}</p>
-                <button
-                  onClick={() => setPaymentStatus('idle')}
-                  className="text-red-600 hover:text-red-800 text-sm underline mt-2"
+            <AnimatePresence>
+              {paymentStatus === 'error' && (
+                <motion.div
+                  variants={shakeVariants}
+                  animate={shake ? "shake" : "idle"}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="p-4 bg-red-50 border border-red-200 rounded-2xl"
                 >
-                  Intentar nuevamente
-                </button>
-              </div>
-            )}
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span className="text-red-800 font-semibold">Error en el pago</span>
+                  </div>
+                  <p className="text-red-600 text-sm mt-1">{responseMessage}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            <form onSubmit={handlePayment} className="space-y-4">
-              <div className="space-y-3">
-                {/* Nombre del titular */}
-                <div>
-                  <label className="block text-gray-900 text-sm font-medium mb-1">
-                    Nombre del Titular <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={cardName}
-                    onChange={(e) => setCardName(e.target.value.toUpperCase())}
-                    onFocus={() => setCardFocus('name')}
-                    placeholder="JUAN PEREZ"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 uppercase text-sm"
-                    required
-                    disabled={paymentStatus === 'loading'}
-                  />
-                </div>
+            <motion.form variants={containerVariants} onSubmit={handlePayment} className="space-y-5">
+              {/* Campos del formulario con animaciones individuales */}
+              <motion.div variants={itemVariants}>
+                <label className="block text-gray-900 text-sm font-semibold mb-2">
+                  Nombre del Titular <span className="text-red-500">*</span>
+                </label>
+                <motion.input
+                  whileFocus={{ scale: 1.01 }}
+                  type="text"
+                  value={cardName}
+                  onChange={(e) => setCardName(e.target.value.toUpperCase())}
+                  onFocus={() => setCardFocus('name')}
+                  placeholder="JUAN PEREZ"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 uppercase text-sm transition-colors"
+                  required
+                  disabled={paymentStatus === 'loading'}
+                />
+              </motion.div>
 
-                {/* Número de tarjeta */}
+              <motion.div variants={itemVariants}>
+                <label className="block text-gray-900 text-sm font-semibold mb-2">
+                  Número de Tarjeta <span className="text-red-500">*</span>
+                </label>
+                <motion.input
+                  whileFocus={{ scale: 1.01 }}
+                  type="text"
+                  value={formatCardNumber(cardNumber)}
+                  onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, ''))}
+                  onFocus={() => setCardFocus('number')}
+                  placeholder="4110 9603 0081 7842"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-gray-900 text-sm transition-colors"
+                  required
+                  maxLength={19}
+                  disabled={paymentStatus === 'loading'}
+                />
+              </motion.div>
+
+              <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-900 text-sm font-medium mb-1">
-                    Número de Tarjeta <span className="text-red-500">*</span>
+                  <label className="block text-sm text-gray-900 font-semibold mb-2">
+                    CVV <span className="text-red-500">*</span>
                   </label>
-                  <input
+                  <motion.input
+                    whileFocus={{ scale: 1.01 }}
                     type="text"
-                    value={formatCardNumber(cardNumber)}
-                    onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, ''))}
-                    onFocus={() => setCardFocus('number')}
-                    placeholder="4110 9603 0081 7842"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-gray-900 text-sm"
+                    value={cvv}
+                    onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                    onFocus={() => setCardFocus('cvc')}
+                    placeholder="123"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-gray-900 text-sm transition-colors"
                     required
-                    maxLength={19}
+                    maxLength={3}
                     disabled={paymentStatus === 'loading'}
                   />
                 </div>
                 
-                {/* CVV y Fecha en grid responsive */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm text-gray-900 font-medium mb-1">
-                      CVV <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={cvv}
-                      onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                      onFocus={() => setCardFocus('cvc')}
-                      placeholder="123"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-gray-900 text-sm"
-                      required
-                      maxLength={3}
-                      disabled={paymentStatus === 'loading'}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">3 dígitos</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900">
-                      Fecha Expiración <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formatExpirationDate(expirationDate)}
-                      onChange={(e) => setExpirationDate(e.target.value.replace(/\D/g, ''))}
-                      onFocus={() => setCardFocus('expiry')}
-                      placeholder="2025/10"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-gray-900 text-sm"
-                      required
-                      maxLength={7}
-                      disabled={paymentStatus === 'loading'}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Formato: AAAA/MM</p>
-                  </div>
-                </div>
-                
-                {/* Campo de Cédula */}
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-900">
-                    Cédula <span className="text-red-500">*</span>
+                  <label className="block text-sm font-semibold mb-2 text-gray-900">
+                    Expiración <span className="text-red-500">*</span>
                   </label>
-                  <div className="flex gap-2">
-                    <select
-                      value={idType}
-                      onChange={(e) => setIdType(e.target.value as IdType)}
-                      className="w-20 px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white text-sm"
-                      disabled={paymentStatus === 'loading'}
-                    >
-                      <option value="V">V</option>
-                      <option value="E">E</option>
-                      <option value="J">J</option>
-                    </select>
-                    <input
-                      type="text"
-                      value={idNumber}
-                      onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      placeholder="12345678"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-gray-900 text-sm"
-                      required
-                      maxLength={10}
-                      disabled={paymentStatus === 'loading'}
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">Entre 6 y 10 dígitos</p>
+                  <motion.input
+                    whileFocus={{ scale: 1.01 }}
+                    type="text"
+                    value={formatExpirationDate(expirationDate)}
+                    onChange={(e) => setExpirationDate(e.target.value.replace(/\D/g, ''))}
+                    onFocus={() => setCardFocus('expiry')}
+                    placeholder="2025/10"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-gray-900 text-sm transition-colors"
+                    required
+                    maxLength={7}
+                    disabled={paymentStatus === 'loading'}
+                  />
                 </div>
-              </div>
+              </motion.div>
 
-              <button 
-                type="submit" 
-                disabled={paymentStatus === 'loading'}
-                className="w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300 transition-colors font-medium text-sm"
+              <motion.div variants={itemVariants}>
+                <label className="block text-sm font-semibold mb-2 text-gray-900">
+                  Cédula <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-3">
+                  <motion.select
+                    whileFocus={{ scale: 1.01 }}
+                    value={idType}
+                    onChange={(e) => setIdType(e.target.value as IdType)}
+                    className="w-24 px-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white text-sm transition-colors"
+                    disabled={paymentStatus === 'loading'}
+                  >
+                    <option value="V">V</option>
+                    <option value="E">E</option>
+                    <option value="J">J</option>
+                  </motion.select>
+                  <motion.input
+                    whileFocus={{ scale: 1.01 }}
+                    type="text"
+                    value={idNumber}
+                    onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="12345678"
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-gray-900 text-sm transition-colors"
+                    required
+                    maxLength={10}
+                    disabled={paymentStatus === 'loading'}
+                  />
+                </div>
+              </motion.div>
+
+              
+              
+              <motion.button 
+          variants={itemVariants}
+          whileHover={{ scale: paymentStatus === 'loading' ? 1 : 1.02 }}
+          whileTap={{ scale: paymentStatus === 'loading' ? 1 : 0.98 }}
+          type="submit" 
+          disabled={paymentStatus === 'loading'}
+          className="w-full px-4 py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 disabled:from-purple-400 disabled:to-purple-500 text-white rounded-xl transition-all duration-200 font-semibold text-sm shadow-lg flex items-center justify-center gap-3 disabled:cursor-not-allowed"
+        >
+          {paymentStatus === 'loading' ? (
+            <>
+              <GradientLogoSpinner size={28} />
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
               >
-                {paymentStatus === 'loading' ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Procesando Pago...
-                  </div>
-                ) : (
-                  'Realizar Pago'
-                )}
-              </button>
-            </form>
-          </div>
+                Procesando Pago...
+              </motion.span>
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+              </svg>
+              <span>Realizar Pago</span>
+            </>
+          )}
+        </motion.button>
+
+
+            </motion.form>
+          </motion.div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

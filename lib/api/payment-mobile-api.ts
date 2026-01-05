@@ -5,7 +5,9 @@ import {
   PaymentMobilePaymentResponse
 } from '@/lib/types/payment-mobile';
 
-const API_BASE_URL = 'https://connect-api-y3jc.onrender.com';
+//const API_BASE_URL = 'https://connect-api-y3jc.onrender.com';
+
+const API_BASE_URL = 'http://localhost:3000';
 
 // Clase base para manejar errores de API
 class PaymentApiError extends Error {

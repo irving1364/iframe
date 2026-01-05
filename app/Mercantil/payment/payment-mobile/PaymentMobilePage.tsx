@@ -42,9 +42,15 @@ export default function PaymentMobilePage() {
           clientData = decodedData;
         } else {
           clientData = {
+            /*encryptedClient: "pqk0J2fmE5V7ws0jgyGStsV8UIQWF/+O7ybM7873Vo6NH7kdaw8tH6n4kUF87q1k",
+            encryptedMerchant: "9eCugut1AKH18YUMHSU82w==",
+            encryptedKey: "AUk4GeJjEtd95rB87efAM8LdhFOopK7WXg91W6yybokbUcB81elxXQ3tFXsjwZVe",
+            */
             encryptedClient: "pXsM1bjazk/Gc7ASLqJLje4Hc8VR3MPD4Q+D8t46NMvTnPDDCz3ItgPpOby/5Rop",
             encryptedMerchant: "JZb38y6vm/CKkGvZ2i+rxQ==",
             encryptedKey: "l7GpQTyXBWnym0Q9mmATdwzisIqCSZlFPbkFs9azdmM=",
+            
+            
             invoiceNumber: "PM-" + Date.now().toString().slice(-6),
             amount: 100.50,
             description: "Mobile Payment - Development mode"

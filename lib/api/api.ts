@@ -1,6 +1,7 @@
 import { PaymentRequest, PaymentResponse } from '@/lib/types';
 
-const API_BASE_URL = 'https://connect-api-y3jc.onrender.com';
+//const API_BASE_URL = 'https://connect-api-y3jc.onrender.com';
+const API_BASE_URL = 'http://localhost:3000';
 
 export class PaymentApi {
   static async processPayment(paymentData: PaymentRequest): Promise<PaymentResponse> {
