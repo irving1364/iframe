@@ -589,11 +589,19 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
             <AnimatePresence>
               {paymentStatus === 'error' && (
                 <motion.div
-                  variants={shakeVariants}
-                  animate={shake ? "shake" : "idle"}
                   initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  animate={{ 
+                    opacity: 1, 
+                    y: 0,
+                    x: shake ? [0, -10, 10, -10, 10, 0] : 0 
+                  }}
                   exit={{ opacity: 0, y: -10 }}
+                  transition={shake ? {
+                    x: {
+                      duration: 0.5,
+                      repeat: 0
+                    }
+                  } : undefined}
                   className="p-4 bg-red-50 border border-red-200 rounded-2xl"
                 >
                   <div className="flex items-center">
