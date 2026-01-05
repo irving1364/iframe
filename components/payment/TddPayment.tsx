@@ -400,7 +400,7 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={resetForm}
-              className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-semibold shadow-lg"
+              className="px-8 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold shadow-lg"
             >
               Realizar otro pago
             </motion.button>
@@ -424,7 +424,7 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
         <div className="flex items-center justify-center mb-4">
           <motion.div
             whileHover={{ scale: 1.05, rotate: 5 }}
-            className="w-12 h-12 mr-3 bg-gradient-to-br from-green-600 to-green-700 rounded-xl flex items-center justify-center shadow-lg"
+            className="w-12 h-12 mr-3 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl flex items-center justify-center shadow-lg"
           >
             <svg viewBox="0 0 281.75 281.72" className="w-6 h-6 text-white">
               <path fill="currentColor" d="M9.25,9.28c0,93.75.51.48.51,94.23H131L9.76,224.72V291H76.05L197.26,169.8V291H291V9.76H103.51" transform="translate(-9.25 -9.28)"/>
@@ -454,31 +454,31 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
         {/* Información de la transacción */}
         <motion.div
           variants={itemVariants}
-          className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl"
+          className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl"
         >
           <div className="flex justify-between items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
               </div>
               <div>
-                <p className="text-xs text-green-600 font-medium">N° DE FACTURA</p>
+                <p className="text-xs text-purple-600 font-medium">N° DE FACTURA</p>
                 <p className="text-sm font-bold text-gray-900">{invoiceNumber}</p>
               </div>
             </div>
             
-            <div className="h-8 w-px bg-green-200"></div>
+            <div className="h-8 w-px bg-purple-200"></div>
             
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
                 </svg>
               </div>
               <div>
-                <p className="text-xs text-emerald-600 font-medium">MONTO A PAGAR</p>
+                <p className="text-xs text-blue-600 font-medium">MONTO A PAGAR</p>
                 <p className="text-sm font-bold text-gray-900">${clientData.amount.toFixed(2)}</p>
               </div>
             </div>
@@ -506,36 +506,6 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
                 />
               </motion.div>
             </div>
-
-            {/* Nota sobre OTP */}
-            <motion.div variants={itemVariants} className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-800">Verificación en dos pasos</p>
-                  <p className="text-xs text-gray-600">Debe solicitar la clave OTP antes de pagar</p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Información de seguridad */}
-            <motion.div variants={itemVariants} className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-800">Pago 100% seguro</p>
-                  <p className="text-xs text-gray-600">Todas las transacciones están encriptadas</p>
-                </div>
-              </div>
-            </motion.div>
           </motion.div>
 
           {/* Columna 2: Formulario */}
@@ -586,7 +556,7 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
                         accountType: 'CA',
                         otp: '12345678'
                       })}
-                      className="text-xs bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition-colors"
+                      className="text-xs bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded-lg transition-colors"
                     >
                       💳 Débito Test
                     </motion.button>
@@ -674,7 +644,7 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
                   onChange={(e) => setCardName(e.target.value.toUpperCase())}
                   onFocus={() => setCardFocus('name')}
                   placeholder="JUAN PEREZ"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 uppercase text-sm transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 uppercase text-sm transition-colors"
                   required
                   disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
                 />
@@ -691,7 +661,7 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
                   onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, ''))}
                   onFocus={() => setCardFocus('number')}
                   placeholder="4532 3100 5300 7854"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-gray-900 text-sm transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-gray-900 text-sm transition-colors"
                   required
                   maxLength={19}
                   disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
@@ -710,7 +680,7 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
                     onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
                     onFocus={() => setCardFocus('cvc')}
                     placeholder="330"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-gray-900 text-sm transition-colors"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-gray-900 text-sm transition-colors"
                     required
                     maxLength={3}
                     disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
@@ -728,7 +698,7 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
                     onChange={(e) => setExpirationDate(e.target.value.replace(/\D/g, ''))}
                     onFocus={() => setCardFocus('expiry')}
                     placeholder="2027/10"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-gray-900 text-sm transition-colors"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-gray-900 text-sm transition-colors"
                     required
                     maxLength={7}
                     disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
@@ -743,7 +713,7 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
                     whileFocus={{ scale: 1.01 }}
                     value={accountType}
                     onChange={(e) => setAccountType(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 bg-white text-sm transition-colors"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white text-sm transition-colors"
                     disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
                     required
                   >
@@ -762,7 +732,7 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
                     whileFocus={{ scale: 1.01 }}
                     value={idType}
                     onChange={(e) => setIdType(e.target.value as IdType)}
-                    className="w-24 px-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 bg-white text-sm transition-colors"
+                    className="w-24 px-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white text-sm transition-colors"
                     disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
                   >
                     <option value="V">V</option>
@@ -775,7 +745,7 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
                     value={idNumber}
                     onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
                     placeholder="12345678"
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-gray-900 text-sm transition-colors"
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-gray-900 text-sm transition-colors"
                     required
                     maxLength={10}
                     disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
@@ -796,7 +766,7 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
                     type="button"
                     onClick={handleAuthRequest}
                     disabled={paymentStatus === 'loading' || paymentStatus === 'processing' || !cardNumber || !idNumber}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-green-300 transition-colors text-sm font-medium flex items-center"
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-purple-300 transition-colors text-sm font-medium flex items-center"
                   >
                     {paymentStatus === 'loading' ? (
                       <>
@@ -820,7 +790,7 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, authData?.twofactor?.length ? parseInt(authData.twofactor.length) : 8))}
                   placeholder={authData ? `Ingrese ${authData.twofactor.length} dígitos` : "Solicite OTP primero"}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-gray-900 text-center text-lg transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-gray-900 text-center text-lg transition-colors"
                   required
                   maxLength={authData?.twofactor?.length ? parseInt(authData.twofactor.length) : 8}
                   disabled={paymentStatus === 'loading' || paymentStatus === 'processing' || (!isAuthRequested && !bypassOtpValidation)}
@@ -840,7 +810,7 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
                   paymentStatus === 'processing' || 
                   (!isAuthRequested && !bypassOtpValidation)
                 }
-                className="w-full px-4 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-green-400 disabled:to-green-500 text-white rounded-xl transition-all duration-200 font-semibold text-sm shadow-lg flex items-center justify-center gap-3 disabled:cursor-not-allowed"
+                className="w-full px-4 py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 disabled:from-purple-400 disabled:to-purple-500 text-white rounded-xl transition-all duration-200 font-semibold text-sm shadow-lg flex items-center justify-center gap-3 disabled:cursor-not-allowed"
               >
                 {paymentStatus === 'processing' ? (
                   <>
@@ -865,6 +835,37 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
             </motion.form>
           </motion.div>
         </div>
+
+        {/* Sección de información - MOVIDA AL FINAL */}
+        <motion.div variants={containerVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-gray-100">
+          <motion.div variants={itemVariants} className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-800 mb-1">Verificación en dos pasos</p>
+                <p className="text-xs text-gray-600">Debe solicitar la clave OTP antes de pagar</p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="p-4 bg-green-50 border border-green-200 rounded-xl">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-800 mb-1">Pago 100% seguro</p>
+                <p className="text-xs text-gray-600">Todas las transacciones están encriptadas</p>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
       </motion.div>
     </motion.div>
   );
