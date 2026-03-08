@@ -42,12 +42,12 @@ const successVariants = {
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 10 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.5,
+      duration: 0.4,
       ease: [0.16, 1, 0.3, 1] as const
     }
   }
@@ -62,18 +62,6 @@ const cardVariants = {
       duration: 0.5,
       ease: [0.16, 1, 0.3, 1] as const
     }
-  }
-};
-
-const shakeVariants = {
-  shake: {
-    x: [0, -10, 10, -10, 10, 0],
-    transition: {
-      duration: 0.5
-    }
-  },
-  idle: {
-    x: 0
   }
 };
 
@@ -102,7 +90,6 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
   const [shake, setShake] = useState(false);
   const [bypassOtpValidation, setBypassOtpValidation] = useState(false);
 
-  // Extraer customerId existente si viene del clientData
   useEffect(() => {
     if (clientData.customerId && typeof clientData.customerId === 'string') {
       const match = clientData.customerId.match(/^([VEJ])(\d+)$/);
@@ -120,7 +107,6 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
     }
   }, [clientData.customerId]);
 
-  // Funciones de formateo
   const formatCardNumber = (value: string) => {
     const cleaned = value.replace(/\D/g, '').slice(0, 16);
     const groups = cleaned.match(/.{1,4}/g);
@@ -163,7 +149,6 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
     setTimeout(() => setShake(false), 500);
   };
 
-  // Solicitar autenticación OTP
   const handleAuthRequest = async () => {
     setPaymentStatus('loading');
     setResponseMessage('');
@@ -201,17 +186,12 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
     } catch (error) {
       setPaymentStatus('error');
       setRawResponseData(error instanceof Error ? { error: error.message } : error);
-      
       let errorMessage = 'Error solicitando la clave OTP';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      
+      if (error instanceof Error) errorMessage = error.message;
       setResponseMessage(errorMessage);
     }
   };
 
-  // Procesar pago completo con OTP
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setPaymentStatus('processing');
@@ -272,12 +252,8 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
     } catch (error) {
       setPaymentStatus('error');
       setRawResponseData(error instanceof Error ? { error: error.message } : error);
-      
       let errorMessage = 'Error procesando el pago';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      
+      if (error instanceof Error) errorMessage = error.message;
       setResponseMessage(errorMessage);
     }
   };
@@ -318,7 +294,6 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
       setIdType(testData.idType || 'V');
       setIdNumber(testData.idNumber || '');
     }
-    
     setInvoiceNumber(testData.invoiceNumber || clientData.invoiceNumber || clientData.orderId || '');
     setOtp(testData.otp || '');
   };
@@ -326,92 +301,24 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
   if (paymentStatus === 'success') {
     return (
       <AnimatePresence>
-        <motion.div
-          variants={successVariants}
-          initial="hidden"
-          animate="visible"
-          className={`mx-auto ${
-            embedded 
-              ? 'w-full max-w-full bg-white border border-gray-200 rounded-xl p-5 shadow-sm' 
-              : 'bg-white rounded-2xl shadow-lg border border-gray-200 max-w-4xl p-8'
-          }`}
-        >  
+        <motion.div variants={successVariants} initial="hidden" animate="visible"
+          className={`mx-auto ${embedded ? 'w-full max-w-full bg-white p-4' : 'bg-white rounded-2xl shadow-lg border border-gray-200 max-w-4xl p-8'}`}>  
           <div className="text-center">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ 
-                type: "spring",
-                stiffness: 200,
-                damping: 15
-              }}
-              className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6"
-            >
-              <motion.svg
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="w-10 h-10 text-green-600"
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
+            <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </motion.svg>
-            </motion.div>
-            
-            <motion.h3
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-2xl font-bold text-green-600 mb-3"
-            >
-              ¡Pago Exitoso!
-            </motion.h3>
-            
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="text-gray-600 mb-6"
-            >
-              {responseMessage}
-            </motion.p>
-            
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="bg-green-50 p-5 rounded-xl mb-6 border border-green-200"
-            >
-              <div className="space-y-2 text-left">
-                <p className="text-sm text-green-800 flex justify-between">
-                  <span className="font-semibold">Referencia:</span>
-                  <span>{invoiceNumber}</span>
-                </p>
-                <p className="text-sm text-green-800 flex justify-between">
-                  <span className="font-semibold">Cédula:</span>
-                  <span>{buildCustomerId(idType, idNumber)}</span>
-                </p>
-                <p className="text-sm text-green-800 flex justify-between">
-                  <span className="font-semibold">Tipo de Cuenta:</span>
-                  <span>{accountType === 'CA' ? 'Ahorro' : 'Corriente'}</span>
-                </p>
-                <p className="text-sm text-green-800 flex justify-between">
-                  <span className="font-semibold">Monto:</span>
-                  <span className="font-bold">${clientData.amount.toFixed(2)}</span>
-                </p>
-              </div>
-            </motion.div>
-            
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={resetForm}
-              className="px-8 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold shadow-lg"
-            >
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-green-600 mb-3">¡Pago Exitoso!</h3>
+            <p className="text-gray-600 mb-6">{responseMessage}</p>
+            <div className="bg-green-50 p-5 rounded-xl mb-6 border border-green-200 text-left space-y-2">
+                <p className="text-sm text-green-800 flex justify-between"><span className="font-semibold">Referencia:</span><span>{invoiceNumber}</span></p>
+                <p className="text-sm text-green-800 flex justify-between"><span className="font-semibold">Cédula:</span><span>{buildCustomerId(idType, idNumber)}</span></p>
+                <p className="text-sm text-green-800 flex justify-between"><span className="font-semibold">Monto:</span><span className="font-bold">${clientData.amount.toFixed(2)}</span></p>
+            </div>
+            <button onClick={resetForm} className="px-8 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold shadow-lg">
               Realizar otro pago
-            </motion.button>
+            </button>
           </div>
         </motion.div>
       </AnimatePresence>
@@ -425,26 +332,23 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
       animate="visible"
       className={`mx-auto ${
         embedded 
-          ? 'w-full max-w-full bg-white border border-gray-200 rounded-xl p-5 shadow-sm'
+          ? 'w-full max-w-full bg-white p-3' // <- Aún más sutil, sin bordes en la modal
           : 'bg-white rounded-2xl shadow-lg border border-gray-200 max-w-4xl p-8'
       }`}
     >
-      {/* Header */}
-      <motion.div variants={itemVariants} className="text-center mb-6">
-        <div className="flex items-center justify-center mb-3">
-          <motion.div
-            whileHover={{ scale: 1.05, rotate: 5 }}
-            className="w-10 h-10 mr-3 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl flex items-center justify-center shadow-lg"
-          >
+      {/* Header Compacto */}
+      <motion.div variants={itemVariants} className={`text-center ${embedded ? 'mb-4' : 'mb-6'}`}>
+        <div className="flex items-center justify-center mb-1">
+          <div className="w-10 h-10 mr-3 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl flex items-center justify-center shadow-md">
             <svg viewBox="0 0 281.75 281.72" className="w-5 h-5 text-white">
               <path fill="currentColor" d="M9.25,9.28c0,93.75.51.48.51,94.23H131L9.76,224.72V291H76.05L197.26,169.8V291H291V9.76H103.51" transform="translate(-9.25 -9.28)"/>
             </svg>
-          </motion.div>
-          <h2 className={`font-bold text-gray-800 ${mode === 'odoo' ? 'text-xl' : 'text-2xl'}`}>
+          </div>
+          <h2 className={`font-bold text-gray-800 ${embedded ? 'text-xl' : 'text-2xl'}`}>
             Pago con Tarjeta de Débito
           </h2>
         </div>
-        <p className="text-gray-600 text-sm">Complete los datos de su tarjeta y solicite la clave OTP</p>
+        {!embedded && <p className="text-gray-600 text-sm">Complete los datos de su tarjeta y solicite la clave OTP</p>}
       </motion.div>
 
       {/* Botón panel dev */}
@@ -452,85 +356,54 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
         {showDevButton && (
           <motion.div 
             variants={itemVariants} 
-            initial="visible"
             exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: 'hidden' }}
-            className="mb-6 flex justify-end gap-2"
+            className="mb-4 flex justify-end gap-2"
           >
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              type="button"
-              onClick={() => setShowDevPanel(!showDevPanel)}
-              className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-xl text-gray-700 border border-gray-300 transition-colors"
-            >
+            <button onClick={() => setShowDevPanel(!showDevPanel)} className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-gray-700 border border-gray-300 transition-colors">
               {showDevPanel ? '👨‍💻 Ocultar Panel Dev' : '👨‍💻 Mostrar Panel Dev'}
-            </motion.button>
-            
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              type="button"
-              onClick={() => {
-                setShowDevButton(false);
-                setShowDevPanel(false);
-              }}
-              className="text-xs bg-red-50 hover:bg-red-100 px-2 py-2 rounded-xl text-red-600 border border-red-200 transition-colors flex items-center justify-center"
-              title="Ocultar opciones de desarrollador"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </motion.button>
+            </button>
+            <button onClick={() => { setShowDevButton(false); setShowDevPanel(false); }} className="text-xs bg-red-50 hover:bg-red-100 px-2 py-1.5 rounded-lg text-red-600 border border-red-200 transition-colors flex items-center justify-center" title="Ocultar opciones">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <motion.div variants={containerVariants} className="space-y-6">
-        {/* Información de la transacción */}
-        <motion.div
-          variants={itemVariants}
-          className="p-3 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl"
-        >
+      <motion.div variants={containerVariants} className="space-y-4">
+        {/* Información de la transacción Compacta */}
+        <motion.div variants={itemVariants} className={`bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl ${embedded ? 'p-2' : 'p-4'}`}>
           <div className="flex justify-between items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center">
+                <svg className="w-3 h-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
               </div>
               <div>
-                <p className="text-xs text-purple-600 font-medium">N° DE FACTURA</p>
-                <p className="text-sm font-bold text-gray-900">{invoiceNumber}</p>
+                <p className="text-[10px] text-purple-600 font-bold uppercase">Factura</p>
+                <p className="text-sm font-bold text-gray-900 leading-none">{invoiceNumber}</p>
               </div>
             </div>
-            
             <div className="h-6 w-px bg-purple-200"></div>
-            
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                </svg>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path></svg>
               </div>
               <div>
-                <p className="text-xs text-blue-600 font-medium">MONTO A PAGAR</p>
-                <p className="text-sm font-bold text-gray-900">${clientData.amount.toFixed(2)}</p>
+                <p className="text-[10px] text-blue-600 font-bold uppercase">Monto</p>
+                <p className="text-sm font-bold text-gray-900 leading-none">${clientData.amount.toFixed(2)}</p>
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* Si está embebido usamos 1 sola columna para el formulario. Si no, 2 columnas */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        {/* LAYOUT LADO A LADO: El salvador del espacio vertical */}
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start">
           
-          {/* Columna 1: Tarjeta visual (SIEMPRE VISIBLE) */}
-          <motion.div variants={cardVariants} className="flex justify-center lg:justify-end w-full">
+          {/* IZQUIERDA: Tarjeta visual */}
+          <motion.div variants={cardVariants} className="w-full sm:w-5/12 flex justify-center sm:sticky sm:top-0">
             <motion.div
-              animate={{
-                scale: cardNumber ? [1, 1.02, 1] : 1
-              }}
+              animate={{ scale: cardNumber ? [1, 1.02, 1] : 1 }}
               transition={{ duration: 0.3 }}
-              className="w-full max-w-[340px] relative"
+              className={`w-full max-w-[340px] relative ${embedded ? 'transform scale-[0.85] sm:scale-100 origin-top' : ''}`}
             >
               <CustomCreditCard
                 number={cardNumber}
@@ -543,337 +416,122 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
             </motion.div>
           </motion.div>
 
-          {/* Columna 2: Formulario */}
-          <motion.div variants={containerVariants} className="space-y-4 w-full">
+          {/* DERECHA: Formulario Súper Compacto */}
+          <motion.div variants={containerVariants} className="w-full sm:w-7/12">
             <AnimatePresence>
+              {/* Panel Dev ... */}
               {showDevPanel && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="p-4 bg-yellow-50 border border-yellow-200 rounded-2xl overflow-hidden"
-                >
-                  <h4 className="font-bold text-yellow-800 mb-3 text-sm flex items-center">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-                    </svg>
-                    Panel de Desarrollo - TDD
-                  </h4>
-                  
-                  <div className="mb-3">
-                    <label className="block text-sm font-medium text-yellow-700 mb-1">Configuración:</label>
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="bypassOtpValidation"
-                        checked={bypassOtpValidation}
-                        onChange={(e) => setBypassOtpValidation(e.target.checked)}
-                        className="mr-2 h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="bypassOtpValidation" className="text-sm text-gray-900">
-                        Saltar validación de OTP
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      type="button"
-                      onClick={() => fillWithData({
-                        cardNumber: '4532310053007854',
-                        cvv: '330',
-                        expirationDate: '202710',
-                        cardName: 'TITULAR DÉBITO',
-                        idType: 'V',
-                        idNumber: '4600908',
-                        accountType: 'CA',
-                        otp: '12345678'
-                      })}
-                      className="text-xs bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded-lg transition-colors"
-                    >
-                      💳 Débito Test
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      type="button"
-                      onClick={() => fillWithData({
-                        cardNumber: '',
-                        cvv: '',
-                        expirationDate: '',
-                        cardName: '',
-                        idType: 'V',
-                        idNumber: '',
-                        accountType: 'CA',
-                        otp: ''
-                      })}
-                      className="text-xs bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition-colors"
-                    >
-                      Limpiar
-                    </motion.button>
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="p-3 mb-3 bg-yellow-50 border border-yellow-200 rounded-xl overflow-hidden">
+                  <h4 className="font-bold text-yellow-800 mb-2 text-xs">Panel de Desarrollo</h4>
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" onClick={() => fillWithData({ cardNumber: '4532310053007854', cvv: '330', expirationDate: '202710', cardName: 'TITULAR DÉBITO', idType: 'V', idNumber: '4600908', accountType: 'CA', otp: '12345678' })} className="text-[10px] bg-purple-500 hover:bg-purple-600 text-white px-2 py-1.5 rounded transition-colors">💳 Débito Test</button>
+                    <button type="button" onClick={() => setBypassOtpValidation(!bypassOtpValidation)} className={`text-[10px] px-2 py-1.5 rounded transition-colors ${bypassOtpValidation ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'}`}>{bypassOtpValidation ? 'Validación OTP: OFF' : 'Validación OTP: ON'}</button>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Mensaje de autenticación exitosa */}
+            {/* Mensajes de OTP y Error compactos */}
             {isAuthRequested && authData && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-3 bg-green-50 border border-green-200 rounded-xl"
-              >
-                <div className="flex items-center">
-                  <svg className="w-4 h-4 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  <span className="text-green-800 font-semibold text-sm">Clave OTP Solicitada</span>
-                </div>
-                <p className="text-green-700 text-xs mt-1">{authData.twofactor.label} (Longitud: {authData.twofactor.length})</p>
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-2 mb-3 bg-green-50 border border-green-200 rounded-lg flex items-center">
+                <span className="text-green-800 text-xs font-semibold">✅ OTP Solicitada: {authData.twofactor.label}</span>
               </motion.div>
             )}
-
-            {/* Mensaje de error */}
             <AnimatePresence>
               {paymentStatus === 'error' && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ 
-                    opacity: 1, 
-                    y: 0,
-                    x: shake ? [0, -10, 10, -10, 10, 0] : 0 
-                  }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={shake ? {
-                    x: {
-                      duration: 0.5,
-                      repeat: 0
-                    }
-                  } : undefined}
-                  className="p-3 bg-red-50 border border-red-200 rounded-xl"
-                >
-                  <div className="flex items-center">
-                    <svg className="w-4 h-4 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span className="text-red-800 text-sm font-semibold">Error en el pago</span>
-                  </div>
-                  <p className="text-red-600 text-xs mt-1">{responseMessage}</p>
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0, x: shake ? [0,-10,10,-10,10,0] : 0 }} exit={{ opacity: 0, height: 0 }} className="p-2 mb-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-800 text-xs font-semibold">❌ {responseMessage}</p>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <motion.form variants={containerVariants} onSubmit={handlePayment} className="space-y-4">
+            <motion.form variants={containerVariants} onSubmit={handlePayment} className="space-y-3">
               
-              {/* Fila 1: Nombre y Tarjeta uno al lado del otro en pantallas medianas */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <motion.div variants={itemVariants}>
-                  <label className="block text-gray-900 text-xs font-semibold mb-1">Nombre del Titular <span className="text-red-500">*</span></label>
-                  <motion.input
-                    whileFocus={{ scale: 1.01 }}
-                    type="text"
-                    value={cardName}
-                    onChange={(e) => setCardName(e.target.value.toUpperCase())}
-                    onFocus={() => setCardFocus('name')}
-                    placeholder="JUAN PEREZ"
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 uppercase text-sm"
-                    required
-                    disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
-                  />
-                </motion.div>
+              {/* Apilamos Nombre y Número en pantallas pequeñas del lado derecho para que no se aprieten */}
+              <motion.div variants={itemVariants}>
+                <label className="block text-gray-900 text-xs font-semibold mb-1">Nombre del Titular <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  value={cardName}
+                  onChange={(e) => setCardName(e.target.value.toUpperCase())}
+                  onFocus={() => setCardFocus('name')}
+                  placeholder="JUAN PEREZ"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-gray-900 uppercase text-sm"
+                  required disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
+                />
+              </motion.div>
 
-                <motion.div variants={itemVariants}>
-                  <label className="block text-gray-900 text-xs font-semibold mb-1">Número de Tarjeta <span className="text-red-500">*</span></label>
-                  <motion.input
-                    whileFocus={{ scale: 1.01 }}
-                    type="text"
-                    value={formatCardNumber(cardNumber)}
-                    onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, ''))}
-                    onFocus={() => setCardFocus('number')}
-                    placeholder="4532 3100 5300 7854"
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-gray-900 text-sm"
-                    required
-                    maxLength={19}
-                    disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
-                  />
-                </motion.div>
-              </div>
+              <motion.div variants={itemVariants}>
+                <label className="block text-gray-900 text-xs font-semibold mb-1">Número de Tarjeta <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  value={formatCardNumber(cardNumber)}
+                  onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, ''))}
+                  onFocus={() => setCardFocus('number')}
+                  placeholder="4532 3100 5300 7854"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 font-mono text-gray-900 text-sm"
+                  required maxLength={19} disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
+                />
+              </motion.div>
 
-              {/* Fila 2: CVV, Expiración y Tipo de Cuenta (3 columnas simétricas) */}
-              <motion.div variants={itemVariants} className="grid grid-cols-3 gap-3">
+              <motion.div variants={itemVariants} className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="block text-xs text-gray-900 font-semibold mb-1">CVV <span className="text-red-500">*</span></label>
-                  <motion.input
-                    whileFocus={{ scale: 1.01 }}
-                    type="text"
-                    value={cvv}
-                    onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                    onFocus={() => setCardFocus('cvc')}
-                    placeholder="330"
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-gray-900 text-sm"
-                    required
-                    maxLength={3}
-                    disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
-                  />
+                  <input type="text" value={cvv} onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))} onFocus={() => setCardFocus('cvc')} placeholder="330" className="w-full px-2 py-2 border border-gray-300 rounded-lg font-mono text-sm text-center" required maxLength={3} disabled={paymentStatus === 'loading' || paymentStatus === 'processing'} />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold mb-1 text-gray-900">Expira <span className="text-red-500">*</span></label>
-                  <motion.input
-                    whileFocus={{ scale: 1.01 }}
-                    type="text"
-                    value={formatExpirationDate(expirationDate)}
-                    onChange={(e) => setExpirationDate(e.target.value.replace(/\D/g, ''))}
-                    onFocus={() => setCardFocus('expiry')}
-                    placeholder="2027/10"
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-gray-900 text-sm"
-                    required
-                    maxLength={7}
-                    disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
-                  />
+                  <input type="text" value={formatExpirationDate(expirationDate)} onChange={(e) => setExpirationDate(e.target.value.replace(/\D/g, ''))} onFocus={() => setCardFocus('expiry')} placeholder="2027/10" className="w-full px-2 py-2 border border-gray-300 rounded-lg font-mono text-sm text-center" required maxLength={7} disabled={paymentStatus === 'loading' || paymentStatus === 'processing'} />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold mb-1 text-gray-900">Cuenta <span className="text-red-500">*</span></label>
-                  <motion.select
-                    whileFocus={{ scale: 1.01 }}
-                    value={accountType}
-                    onChange={(e) => setAccountType(e.target.value)}
-                    className="w-full px-2 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 bg-white text-sm"
-                    disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
-                    required
-                  >
+                  <select value={accountType} onChange={(e) => setAccountType(e.target.value)} className="w-full px-1 py-2 border border-gray-300 rounded-lg text-sm bg-white" disabled={paymentStatus === 'loading' || paymentStatus === 'processing'} required>
                     <option value="CA">Ahorro</option>
                     <option value="CC">Corriente</option>
-                  </motion.select>
+                  </select>
                 </div>
               </motion.div>
 
-              {/* Fila 3: Cédula (Compacta) */}
               <motion.div variants={itemVariants}>
                 <label className="block text-xs font-semibold mb-1 text-gray-900">Cédula del Titular <span className="text-red-500">*</span></label>
                 <div className="flex gap-2">
-                  <motion.select
-                    whileFocus={{ scale: 1.01 }}
-                    value={idType}
-                    onChange={(e) => setIdType(e.target.value as IdType)}
-                    className="w-16 px-2 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 bg-white text-sm"
-                    disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
-                  >
-                    <option value="V">V</option>
-                    <option value="E">E</option>
-                    <option value="J">J</option>
-                  </motion.select>
-                  <motion.input
-                    whileFocus={{ scale: 1.01 }}
-                    type="text"
-                    value={idNumber}
-                    onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    placeholder="12345678"
-                    className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-gray-900 text-sm"
-                    required
-                    maxLength={10}
-                    disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}
-                  />
+                  <select value={idType} onChange={(e) => setIdType(e.target.value as IdType)} className="w-16 px-1 py-2 border border-gray-300 rounded-lg text-sm bg-white" disabled={paymentStatus === 'loading' || paymentStatus === 'processing'}>
+                    <option value="V">V</option><option value="E">E</option><option value="J">J</option>
+                  </select>
+                  <input type="text" value={idNumber} onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="12345678" className="flex-1 px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm" required maxLength={10} disabled={paymentStatus === 'loading' || paymentStatus === 'processing'} />
                 </div>
               </motion.div>
 
-              {/* Sección OTP (Alineación Horizontal para ahorrar espacio) */}
-              <motion.div variants={itemVariants} className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex flex-col sm:flex-row items-end gap-3">
-                <div className="flex-1 w-full">
-                  <label className="text-xs font-semibold text-gray-900 mb-1 block">Clave Temporal OTP <span className="text-red-500">*</span></label>
-                  <motion.input
-                    whileFocus={{ scale: 1.01 }}
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, authData?.twofactor?.length ? parseInt(authData.twofactor.length) : 8))}
-                    placeholder={authData ? `${authData.twofactor.length} dígitos` : "Solicite OTP"}
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-gray-900 text-center text-sm"
-                    required
-                    disabled={paymentStatus === 'loading' || paymentStatus === 'processing' || (!isAuthRequested && !bypassOtpValidation)}
-                  />
+              <motion.div variants={itemVariants} className="p-2 bg-blue-50 border border-blue-200 rounded-lg flex gap-2 items-end">
+                <div className="flex-1">
+                  <label className="text-xs font-semibold text-gray-900 mb-1 block">Clave OTP <span className="text-red-500">*</span></label>
+                  <input type="text" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, authData?.twofactor?.length ? parseInt(authData.twofactor.length) : 8))} placeholder={authData ? `${authData.twofactor.length} dígitos` : "OTP"} className="w-full px-2 py-2 border border-gray-300 rounded-lg font-mono text-center text-sm" required disabled={paymentStatus === 'loading' || paymentStatus === 'processing' || (!isAuthRequested && !bypassOtpValidation)} />
                 </div>
-                <div className="w-full sm:w-auto">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    type="button"
-                    onClick={handleAuthRequest}
-                    disabled={paymentStatus === 'loading' || paymentStatus === 'processing' || !cardNumber || !idNumber}
-                    className="w-full sm:w-auto px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-purple-300 text-sm font-medium flex items-center justify-center whitespace-nowrap transition-colors"
-                  >
-                    {paymentStatus === 'loading' ? 'Solicitando...' : 'Solicitar OTP'}
-                  </motion.button>
-                </div>
+                <button type="button" onClick={handleAuthRequest} disabled={paymentStatus === 'loading' || paymentStatus === 'processing' || !cardNumber || !idNumber} className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-purple-300 text-xs font-medium whitespace-nowrap h-[38px]">
+                  {paymentStatus === 'loading' ? 'Solicitando...' : 'Solicitar OTP'}
+                </button>
               </motion.div>
 
-              {/* Botón de Submit */}
               <motion.button 
-                variants={itemVariants}
-                whileHover={{ scale: paymentStatus === 'processing' ? 1 : 1.02 }}
-                whileTap={{ scale: paymentStatus === 'processing' ? 1 : 0.98 }}
-                type="submit" 
-                disabled={
-                  paymentStatus === 'loading' || 
-                  paymentStatus === 'processing' || 
-                  (!isAuthRequested && !bypassOtpValidation)
-                }
-                className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 disabled:from-purple-400 disabled:to-purple-500 text-white rounded-xl transition-all duration-200 font-semibold text-sm shadow-md flex items-center justify-center gap-2 disabled:cursor-not-allowed mt-2"
+                variants={itemVariants} whileHover={{ scale: paymentStatus === 'processing' ? 1 : 1.02 }} whileTap={{ scale: paymentStatus === 'processing' ? 1 : 0.98 }} type="submit" 
+                disabled={paymentStatus === 'loading' || paymentStatus === 'processing' || (!isAuthRequested && !bypassOtpValidation)}
+                className="w-full px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 disabled:from-purple-400 text-white rounded-xl font-semibold text-sm shadow-md flex items-center justify-center gap-2 mt-1"
               >
                 {paymentStatus === 'processing' ? (
-                  <>
-                    <GradientLogoSpinner size={24} />
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.1 }}
-                    >
-                      Procesando Pago...
-                    </motion.span>
-                  </>
+                  <><GradientLogoSpinner size={20} /><span>Procesando...</span></>
                 ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                    </svg>
-                    <span>Realizar Pago con Débito</span>
-                  </>
+                  <span>Realizar Pago</span>
                 )}
               </motion.button>
             </motion.form>
           </motion.div>
         </div>
 
-        {/* Sección de información (Solo visible fuera de Odoo para ahorrar espacio) */}
+        {/* Info footer oculto en Odoo */}
         {!embedded && (
-          <motion.div variants={containerVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-            <motion.div variants={itemVariants} className="p-3 bg-blue-50 border border-blue-200 rounded-xl">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-800 mb-0.5">Verificación en dos pasos</p>
-                  <p className="text-xs text-gray-600">Debe solicitar la clave OTP antes de pagar</p>
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div variants={itemVariants} className="p-3 bg-green-50 border border-green-200 rounded-xl">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-800 mb-0.5">Pago 100% seguro</p>
-                  <p className="text-xs text-gray-600">Todas las transacciones están encriptadas</p>
-                </div>
-              </div>
-            </motion.div>
+          <motion.div variants={containerVariants} className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+             <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl"><p className="text-xs font-semibold text-gray-800">Verificación 2 Pasos</p><p className="text-[10px] text-gray-600">Solicite OTP antes de pagar</p></div>
+             <div className="p-3 bg-green-50 border border-green-200 rounded-xl"><p className="text-xs font-semibold text-gray-800">Pago 100% Seguro</p><p className="text-[10px] text-gray-600">Transacción encriptada</p></div>
           </motion.div>
         )}
       </motion.div>
