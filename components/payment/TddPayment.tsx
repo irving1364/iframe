@@ -521,34 +521,30 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
         </motion.div>
 
         {/* Si está embebido usamos 1 sola columna para el formulario. Si no, 2 columnas */}
-        <div className={`grid grid-cols-1 ${!embedded ? 'md:grid-cols-2' : ''} gap-6 items-start`}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           
-          {/* Columna 1: Tarjeta visual (OCULTA EN ODOO PARA AHORRAR ESPACIO VERTICAL) */}
-          {!embedded && (
-            <motion.div variants={cardVariants} className="hidden sm:block space-y-6">
-              <div className="flex justify-center">
-                <motion.div
-                  animate={{
-                    scale: cardNumber ? [1, 1.02, 1] : 1
-                  }}
-                  transition={{ duration: 0.3 }}
-                  className="w-full max-w-[340px] relative"
-                >
-                  <CustomCreditCard
-                    number={cardNumber}
-                    name={cardName || "TITULAR DE LA TARJETA"}
-                    expiry={formatDisplayExpiry(expirationDate)}
-                    cvc={cvv}
-                    focused={cardFocus}
-                    issuer="tdd"
-                  />
-                </motion.div>
-              </div>
+          {/* Columna 1: Tarjeta visual (SIEMPRE VISIBLE) */}
+          <motion.div variants={cardVariants} className="flex justify-center lg:justify-end w-full">
+            <motion.div
+              animate={{
+                scale: cardNumber ? [1, 1.02, 1] : 1
+              }}
+              transition={{ duration: 0.3 }}
+              className="w-full max-w-[340px] relative"
+            >
+              <CustomCreditCard
+                number={cardNumber}
+                name={cardName || "TITULAR DE LA TARJETA"}
+                expiry={formatDisplayExpiry(expirationDate)}
+                cvc={cvv}
+                focused={cardFocus}
+                issuer="tdd"
+              />
             </motion.div>
-          )}
+          </motion.div>
 
           {/* Columna 2: Formulario */}
-          <motion.div variants={containerVariants} className="space-y-4">
+          <motion.div variants={containerVariants} className="space-y-4 w-full">
             <AnimatePresence>
               {showDevPanel && (
                 <motion.div
