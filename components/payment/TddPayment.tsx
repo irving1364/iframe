@@ -485,7 +485,7 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8 items-start">
           {/* Columna 1: Tarjeta visual */}
           <motion.div variants={cardVariants} className="space-y-6">
             <div className="flex justify-center">
@@ -668,7 +668,7 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
                 />
               </motion.div>
 
-              <motion.div variants={itemVariants} className="grid grid-cols-3 gap-4">
+              <motion.div variants={itemVariants} className="grid grid-cols-2 xl:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm text-gray-900 font-semibold mb-2">
                     CVV <span className="text-red-500">*</span>

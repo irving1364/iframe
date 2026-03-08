@@ -99,7 +99,7 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
   const [cardFocus, setCardFocus] = useState<'number' | 'name' | 'expiry' | 'cvc'>('number');
   const [cardName, setCardName] = useState('');
   const [detectedCardType, setDetectedCardType] = useState<string>('unknown');
-  const [shake, setShake] = useState(false);
+  const [shake, setShake] = useState(false);const [showDevButton, setShowDevButton] = useState(true);
 
   const cardTypes: Record<string, CardTypeConfig> = {
     zinli: {
@@ -410,17 +410,43 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
       </motion.div>
 
       {/* Botón panel dev */}
-      <motion.div variants={itemVariants} className="mb-6 flex justify-end">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          type="button"
-          onClick={() => setShowDevPanel(!showDevPanel)}
-          className="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl text-gray-700 border border-gray-300 transition-colors"
-        >
-          {showDevPanel ? '👨‍💻 Ocultar Panel Dev' : '👨‍💻 Mostrar Panel Dev'}
-        </motion.button>
-      </motion.div>
+      <AnimatePresence>
+        {showDevButton && (
+          <motion.div 
+            variants={itemVariants} 
+            initial="visible"
+            exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: 'hidden' }}
+            className="mb-6 flex justify-end gap-2"
+          >
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              type="button"
+              onClick={() => setShowDevPanel(!showDevPanel)}
+              className="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl text-gray-700 border border-gray-300 transition-colors"
+            >
+              {showDevPanel ? '👨‍💻 Ocultar Panel Dev' : '👨‍💻 Mostrar Panel Dev'}
+            </motion.button>
+            
+            {/* Botón para ocultar permanentemente los controles Dev */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              type="button"
+              onClick={() => {
+                setShowDevButton(false);
+                setShowDevPanel(false); // Cerramos el panel también por si estaba abierto
+              }}
+              className="text-sm bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl text-red-600 border border-red-200 transition-colors flex items-center justify-center"
+              title="Ocultar opciones de desarrollador"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <motion.div variants={containerVariants} className="space-y-8">
         {/* Información de la transacción */}
@@ -460,7 +486,7 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
             </div>
           </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8 items-start">
           {/* Columna 1: Tarjeta visual */}
           <motion.div variants={cardVariants} className="space-y-6">
             <div className="flex justify-center">
