@@ -326,8 +326,12 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
           variants={successVariants}
           initial="hidden"
           animate="visible"
-          className="max-w-md mx-auto p-8 bg-white rounded-2xl shadow-lg border border-gray-100"
-        >
+          className={`mx-auto ${
+            embedded 
+              ? 'w-full max-w-full' 
+              : 'bg-white rounded-2xl shadow-lg border border-gray-200 max-w-4xl p-8'
+          }`}
+        >  
           <div className="text-center">
             <motion.div
               initial={{ scale: 0 }}
@@ -486,8 +490,8 @@ export default function TddPayment({ clientData, onSuccess, onError, embedded = 
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8 items-start">
-          {/* Columna 1: Tarjeta visual */}
-          <motion.div variants={cardVariants} className="space-y-6">
+          {/* Columna 1: Tarjeta visual (Oculta en móviles con 'hidden sm:block') */}
+          <motion.div variants={cardVariants} className="hidden sm:block space-y-6">
             <div className="flex justify-center">
               <motion.div
                 animate={{

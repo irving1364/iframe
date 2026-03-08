@@ -325,10 +325,12 @@ export default function PaymentMobilePayment({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className={`mx-auto bg-white rounded-2xl shadow-lg border border-gray-200 ${
-        embedded ? 'w-full max-w-full p-4' : 'max-w-3xl p-6'
+      className={`mx-auto ${
+        embedded 
+          ? 'w-full max-w-full' /* <- Sin fondo extra, sin bordes y sin sombras para la modal */
+          : 'bg-white rounded-2xl shadow-lg border border-gray-200 max-w-4xl p-8'
       }`}
-    >
+    >  
       {/* Header más compacto */}
       <motion.div variants={itemVariants} className="text-center mb-6">
         <div className="flex items-center justify-center mb-3">

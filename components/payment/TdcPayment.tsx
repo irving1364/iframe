@@ -387,8 +387,10 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className={`mx-auto bg-white rounded-2xl shadow-lg border border-gray-200 ${
-        embedded ? 'w-full max-w-full p-4' : 'max-w-4xl p-8'
+      className={`mx-auto ${
+        embedded 
+          ? 'w-full max-w-full' /* <- Sin fondo extra, sin bordes y sin sombras para la modal */
+          : 'bg-white rounded-2xl shadow-lg border border-gray-200 max-w-4xl p-8'
       }`}
     >
       {/* Header */}
@@ -487,8 +489,8 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
           </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8 items-start">
-          {/* Columna 1: Tarjeta visual */}
-          <motion.div variants={cardVariants} className="space-y-6">
+          {/* Columna 1: Tarjeta visual (Oculta en móviles con 'hidden sm:block') */}
+          <motion.div variants={cardVariants} className="hidden sm:block space-y-6">
             <div className="flex justify-center">
               <motion.div
                 animate={{
