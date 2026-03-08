@@ -8,7 +8,7 @@ export default function HomePage() {
       name: "Banco Mercantil",
       logo: "/images/mercantil-logo.png",
       services: [
-        // Servicios de pago
+        // Servicios de pagos
         {
           name: "Tarjeta de Crédito",
           description: "Procesar pago con TDC",
