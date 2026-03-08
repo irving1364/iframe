@@ -389,7 +389,7 @@ export default function TdcPayment({ clientData, onSuccess, onError, embedded = 
       animate="visible"
       className={`mx-auto ${
         embedded 
-          ? 'w-full max-w-full' /* <- Sin fondo extra, sin bordes y sin sombras para la modal */
+          ? 'w-full max-w-full bg-white border border-gray-200 rounded-xl p-5 shadow-sm' // <- Contenedor sutil para Odoo
           : 'bg-white rounded-2xl shadow-lg border border-gray-200 max-w-4xl p-8'
       }`}
     >
